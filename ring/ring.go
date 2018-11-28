@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"errors"
 	"bytes"
-    "encoding/binary"
+	"encoding/binary"
 	"math/big"
 	"crypto/rand"
 	"crypto/elliptic"
 	"crypto/ecdsa"
 
- 	"github.com/ethereum/go-ethereum/crypto/sha3"
+	"github.com/ethereum/go-ethereum/crypto/sha3"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
@@ -59,20 +59,19 @@ func (r *RingSign) ByteifySignature() (sig []byte) {
 	
 	// add size and message
 	b := make([]byte, 8)
-    binary.BigEndian.PutUint64(b, uint64(r.Size))
-    sig = append(sig, b[:]...)
-    sig = append(sig, r.M[:]...)
+	binary.BigEndian.PutUint64(b, uint64(r.Size))
+	sig = append(sig, b[:]...)
+	sig = append(sig, r.M[:]...)
 
-    sig = append(sig, r.C.Bytes()...)
-    for i := 0; i < r.Size; i++ {
-    	sig = append(sig, r.S[i].Bytes()...)
-    	sig = append(sig, r.Ring[i].X.Bytes()...)
-    	// fmt.Println(fmt.Sprintf("%x", r.Ring[i].X))
-    	sig = append(sig, r.Ring[i].Y.Bytes()...)
-    }
+	sig = append(sig, r.C.Bytes()...)
+	for i := 0; i < r.Size; i++ {
+		sig = append(sig, r.S[i].Bytes()...)
+		sig = append(sig, r.Ring[i].X.Bytes()...)
+		sig = append(sig, r.Ring[i].Y.Bytes()...)
+	}
 
-    // correct length of byteified signature in bytes:
-    // 32 * (1 + 1 + size + size + size) + 8 = 32*(size*3 + 2) + 8
+	// correct length of byteified signature in bytes:
+	// 32 * (1 + 1 + size + size + size) + 8 = 32*(size*3 + 2) + 8
 	return
 }
 
