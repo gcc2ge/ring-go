@@ -76,10 +76,14 @@ func (r *RingSign) ByteifySignature() (sig []byte) {
 }
 
 // marshals the byteified signature into a RingSign struct
-func MarshalSignature(r []byte) (*RingSign) {
+func MarshalSignature(r []byte) (*RingSign, error) {
 	sig := new(RingSign)
-
 	size := r[0:8]
+
+	if len(r) < 72 {
+		return nil, errors.New("incorrect ring size")
+	}
+
 	m := r[8:40]
 	c := r[40:72]
 
@@ -93,7 +97,11 @@ func MarshalSignature(r []byte) (*RingSign) {
 	sig.M = m_byte
 	sig.C = new(big.Int).SetBytes(c)
 
-	bytelen := size_int * 96 + 72
+	bytelen := size_int * 96
+
+	if len(r) - 72 < bytelen {
+		return nil, errors.New("incorrect ring size")
+	}
 
 	j := 0
 	sig.S = make([]*big.Int, size_int)
@@ -112,9 +120,9 @@ func MarshalSignature(r []byte) (*RingSign) {
 		j++
 	}
 
-	sig.Curve = elliptic.P256()
+	sig.Curve = crypto.S256()
 
-	return sig
+	return sig, nil
 }
 
 // creates a ring with size specified by `size` and places the public key corresponding to `privkey` in index 0 of the ring
@@ -239,7 +247,7 @@ func Verify(sig *RingSign) (bool) {
 	S := sig.S
 	C := make([]*big.Int, ringsize)
 	C[0] = sig.C
-	curve := ring[0].Curve
+	curve := sig.Curve
 
 	// calculate c[i+1] = H(m, s[i]*G + c[i]*P[i])
 	// and c[0] = H)(m, s[n-1]*G + c[n-1]*P[n-1]) where n is the ring size
