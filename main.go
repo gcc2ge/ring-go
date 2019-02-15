@@ -1,11 +1,9 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"io/ioutil"
-	"os"
 
 	"github.com/noot/ring-go/ring"
 
@@ -14,36 +12,9 @@ import (
 )
 
 func main() {
+	// demo function
+
 	fmt.Println("welcome to ring-go...")
-
-	// cli options
-	genPtr := flag.Bool("gen", false, "generate a new public-private keypair")
-	importPtr := flag.Bool("import", false, "import a public key")
-	signPtr := flag.Bool("sign", false, "sign a message with a ring signature")
-	verifyPtr := flag.Bool("verify", false, "verify a ring signature")
-
-	// if no flags passed, display help
-	if len(os.Args) < 2 {
-		flag.PrintDefaults()
-		os.Exit(0)
-	}
-
-	flag.Parse()
-	if *genPtr {
-		os.Exit(0)
-	}
-
-	if *importPtr {
-		os.Exit(0)
-	}
-
-	if *signPtr {
-		os.Exit(0)
-	}
-
-	if *verifyPtr {
-		os.Exit(0)
-	}
 
 	/* generate new private public keypair */
 	privkey, err := crypto.HexToECDSA("358be44145ad16a1add8622786bef07e0b00391e072855a5667eb3c78b9d3803")
@@ -62,7 +33,10 @@ func main() {
 	s := 7
 
 	/* generate keyring */
-	keyring := ring.GenNewKeyRing(12, privkey, s)
+	keyring, err := ring.GenNewKeyRing(12, privkey, s)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	/* sign */
 	sig, err := ring.Sign(msgHash, keyring, privkey, s)
@@ -72,7 +46,10 @@ func main() {
 
 	fmt.Println(sig.S)
 
-	byteSig := sig.SerializeSignature()
+	byteSig, err := sig.Serialize()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Println("signature: ")
 	fmt.Println(fmt.Sprintf("0x%x", byteSig))
